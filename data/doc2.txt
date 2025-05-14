@@ -1,0 +1,2 @@
+Computer science concepts can be challenging.
+Coding in C or C++ is common in CS courses.
