@@ -1,35 +1,32 @@
 import os
 import re
+from collections import defaultdict
 
 def create_index(dir_path, stoplist_filename):
-    inverted_index = {}
+    inverted_index = defaultdict(dict)
     doc_table = {}
-    term_table = set()
     
+    # Đọc stoplist
     stoplist_path = os.path.join(dir_path, stoplist_filename)
     with open(stoplist_path, 'r') as f:
-        stopwords = set(word.strip().lower() for word in f)
+        stopwords = set(f.read().splitlines())
 
-    for filename in os.listdir(dir_path):
-        if filename == stoplist_filename:
+    # Liệt kê tệp bằng os.scandir
+    doc_id = 0
+    for entry in os.scandir(dir_path):
+        if entry.name == stoplist_filename or not entry.is_file():
             continue
 
-        filepath = os.path.join(dir_path, filename)
+        # Đọc tệp theo dòng
+        filepath = entry.path
         with open(filepath, 'r') as f:
-            content = f.read()
+            doc_table[doc_id] = entry.name
+            for line in f:
+                words = re.findall(r'\b\w+\b', line.lower())
+                for word in words:
+                    if not word.startswith('c') or word in stopwords:
+                        continue
+                    inverted_index[word][doc_id] = inverted_index[word].get(doc_id, 0) + 1
+        doc_id += 1
 
-        words = re.findall(r'\b\w+\b', content.lower())
-        doc_id = len(doc_table)
-        doc_table[doc_id] = filename
-
-        for word in words:
-            if word in stopwords or not word.startswith('c'):
-                continue
-            term_table.add(word)
-            if word not in inverted_index:
-                inverted_index[word] = {}
-            if doc_id not in inverted_index[word]:
-                inverted_index[word][doc_id] = 0
-            inverted_index[word][doc_id] += 1
-
-    return inverted_index, doc_table, term_table
+    return dict(inverted_index), doc_table, set(inverted_index.keys())
