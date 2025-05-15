@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  inverted-index-project:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: inverted-index-container
+    image: inverted-index-image
+    stdin_open: true       # Cho phép tương tác (docker run -it)
+    tty: true              # Giữ terminal mở
+    volumes:
+      - .:/app             # Mount thư mục hiện tại vào /app trong container
+    working_dir: /app      # Đặt thư mục làm việc trong container
