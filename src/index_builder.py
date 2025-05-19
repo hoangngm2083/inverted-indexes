@@ -1,32 +1,35 @@
 import os
 import re
-from collections import defaultdict
 
-def create_index(dir_path, stoplist_filename):
-    inverted_index = defaultdict(dict)
+def load_stopwords(stoplist_path):
+    """ Đọc danh sách từ dừng từ tệp stoplist.txt """
+    stopwords = set()
+    with open(stoplist_path, 'r', encoding='utf-8') as f:
+        stopwords = {line.strip().lower() for line in f}
+    return stopwords
+
+def create_index(directory, stoplist_path):
+    """ Tạo Inverted Index từ các tệp trong thư mục """
+    stopwords = load_stopwords(stoplist_path)
+    inverted_index = {}
     doc_table = {}
-    
-    # Đọc stoplist
-    stoplist_path = os.path.join(dir_path, stoplist_filename)
-    with open(stoplist_path, 'r') as f:
-        stopwords = set(f.read().splitlines())
-
-    # Liệt kê tệp bằng os.scandir
     doc_id = 0
-    for entry in os.scandir(dir_path):
-        if entry.name == stoplist_filename or not entry.is_file():
+
+    for filename in os.listdir(directory):
+        file_path = os.path.join(directory, filename)
+        if filename == "stoplist.txt" or not filename.endswith(".txt"):
             continue
-
-        # Đọc tệp theo dòng
-        filepath = entry.path
-        with open(filepath, 'r') as f:
-            doc_table[doc_id] = entry.name
-            for line in f:
-                words = re.findall(r'\b\w+\b', line.lower())
-                for word in words:
-                    if not word.startswith('c') or word in stopwords:
-                        continue
-                    inverted_index[word][doc_id] = inverted_index[word].get(doc_id, 0) + 1
+        
         doc_id += 1
+        doc_table[doc_id] = filename
 
-    return dict(inverted_index), doc_table, set(inverted_index.keys())
+        with open(file_path, 'r', encoding='utf-8') as f:
+            words = re.findall(r'\b[cC]\w*\b', f.read().lower())  # Chỉ lấy từ bắt đầu bằng 'C'
+        
+        for word in words:
+            if word not in stopwords:
+                if word not in inverted_index:
+                    inverted_index[word] = {}
+                inverted_index[word][doc_id] = inverted_index[word].get(doc_id, 0) + 1
+
+    return inverted_index, doc_table
