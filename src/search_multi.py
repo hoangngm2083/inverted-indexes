@@ -1,3 +1,5 @@
+
+
 import os
 from collections import defaultdict
 
@@ -48,3 +50,4 @@ def find_multi(wordfile_path, N, inverted_index, doc_table):
     results = [(doc_table[doc_id], score) for doc_id, score in top_docs]
 
     return results
+

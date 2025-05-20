@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 # Script để cài đặt Docker và Docker Compose trong WSL (Ubuntu)
@@ -49,4 +50,5 @@ docker --version
 docker-compose --version
 
 echo "Cài đặt hoàn tất! Hãy đăng xuất và đăng nhập lại để sử dụng Docker mà không cần sudo."
+
 echo "Chạy 'docker run hello-world' để kiểm tra."

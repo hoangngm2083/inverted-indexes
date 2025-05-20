@@ -14,7 +14,7 @@ def create_index(dir_path, stoplist_filename):
     # Liệt kê tệp bằng os.scandir
     doc_id = 0
     for entry in os.scandir(dir_path):
-        if entry.name == stoplist_filename or not entry.is_file():
+        if "doc" not in entry.name or entry.name == stoplist_filename or not entry.is_file():
             continue
 
         # Đọc tệp theo dòng

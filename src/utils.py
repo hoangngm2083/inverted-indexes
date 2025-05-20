@@ -1,3 +1,4 @@
+
 def print_top_documents(results):
     if not results:
         print("Không tìm thấy tài liệu phù hợp.")

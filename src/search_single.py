@@ -1,3 +1,4 @@
+
 import math
 
 def find_single(word, weight, N, inverted_index, doc_table):
