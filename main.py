@@ -6,16 +6,40 @@ from src.utils import print_top_documents
 # 1. Tạo index
 index, doc_table, term_table = create_index('data', 'stoplist.txt')
 
-print("index",index)
-print("doc_table",doc_table)
-print("term_table",term_table)
+while True:
+    print("\nSelection search mode: ")
+    print("0: exit")
+    print("1: single search")
+    print("2: multi search")
+    
+    try:
+        search_mode = int(input("Enter your search mode: "))
+    except ValueError:
+        print("Invalid input. Please enter a number.")
+        continue
 
-# 2. Tìm theo 1 từ
-print("Top documents for word='cat':")
-results = find_single('cat', weight=3, N=3, inverted_index=index, doc_table=doc_table)
-print_top_documents(results)
+    if search_mode == 0: 
+        print("Exiting...")
+        break
 
-# 3. Tìm theo nhiều từ
-print("\nTop documents for query from file:")
-results = find_multi('data/query_words.txt', N=3, inverted_index=index, doc_table=doc_table)
-print_top_documents(results)
+    elif search_mode == 1:
+        # 2. Tìm theo 1 từ
+        word = input("Enter your search word: ").strip()
+        try:
+            weight = int(input("Enter your search word's weight: "))
+        except ValueError:
+            print("Invalid weight. Please enter a number.")
+            continue
+
+        print(f"\nTop documents for word='{word}' with weight='{weight}':")
+        results = find_single(word, weight=weight, N=3, inverted_index=index, doc_table=doc_table)
+        print_top_documents(results)
+
+    elif search_mode == 2:
+        # 3. Tìm theo nhiều từ
+        print("\nTop documents for query from query_words.txt:")
+        results = find_multi('data/query_words.txt', N=3, inverted_index=index, doc_table=doc_table)
+        print_top_documents(results)
+
+    else:
+        print("Invalid mode. Please select 0, 1, or 2.")
