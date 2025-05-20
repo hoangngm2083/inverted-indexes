@@ -4,9 +4,9 @@
   </a>
 </p>
 
-# Inverted Indexes
+# 📁 Inverted Index Search Engine (Exact Match)
 
-This is exercise 5 in the exercises_06 folder, under the exercises and project directory, is part of the Multimedia Database Systems course. It requires building a program that implements an inverted index for text retrieval.
+This project implements a simple search engine using an **inverted index** structure. It supports exact keyword matching for search queries.
 
 ## Supervisor
 
@@ -17,9 +17,13 @@ MSc. Le Ha Thanh – Faculty of Information Technology 2, Posts and Telecommunic
 -   [Students’ Information](#students-information)
 -   [Problem Description](#problem-description)
 -   [Project Implementation Details](#project-implementation-details)
+-   [Project Structure](#project-structure)
 -   [Installation](#installation)
--   [Run The Program](#run-the-program)
--   [Example Input & Output](#example-input--output)
+-   [Running the App](#running-the-app)
+-   [Search Instructions](#search-instructions)
+-   [Notes](#notes)
+-   [Features](#features)
+-   [License](#license)
 -   [Contributors](#contributors)
 
 ## Students’ Information
@@ -50,11 +54,16 @@ As a project, write a program that implements inverted indexes. Your program mus
     Open the `stoplist.txt` file in the `data` directory and store the contents in the `stopwords` set (all converted to lowercase).
 
 -   **Iterate through each file in the `data` directory (excluding the stoplist file):**
-    -   Read the entire content and convert it to lowercase.
-    -   Use the regular expression `\b\w+\b` to extract words.
+    -   Use `os.scandir` to iterate through each entry in the directory.
+    -   Skip the entry if: the file name does not contain "doc", it is the stoplist file, or it is not a regular file.
     -   Assign a new `doc_id` (which is the index of the file in `doc_table`) and store the mapping `doc_id → filename`.
 
 -   **Build the inverted index**
+
+    For each valid file:
+    -   Read its contents line by line.
+    -   Convert each line to lowercase using `lower()`.
+    -   Use the regular expression `\b\w+\b` to split each line into words.
 
     For each word in `words`:
     -   Skip the word if it is in `stopwords` or does not start with the letter “c”.
@@ -75,11 +84,15 @@ As a project, write a program that implements inverted indexes. Your program mus
     -   and the pre-built `inverted_index` and `doc_table`.
 
 -   **Processing:**
-    -   Normalize the word (convert to lowercase), and check if it exists in the `inverted_index`.
-    -   For each `(doc_id, count)` in the posting list of that word:
+    -   Normalize the keyword (convert it to lowercase), then check if the word exists in the `inverted_index`. If it does not exist, return an empty list.
+    -   Calculate the IDF (Inverse Document Frequency) to reduce the impact of common words:
 
-        Compute the score as `score = count * weight`.
-    -   Take the top-N results sorted by descending score, then map them back to `(filename, score)` to return.
+    -   For each pair `(doc_id, count)` in the posting list of the word:
+        ```
+        Compute the score as: score = count * weight * idf
+        ```
+    -   Sort the documents by score in descending order.
+    -   Take the top-N documents with the highest scores, map `doc_id` → `filename`, and return the result as a list of `(filename, score)` tuples.
 
 ### 3. src/search_multi.py (function find_multi)
 
@@ -105,29 +118,58 @@ filename2.txt: score2
 
 ### 5. main.py
 
--   **Index Construction**
+-   **Building the index, doc_table, and term_table:**
 
     ```bash
     index, doc_table, term_table = create_index('data', 'stoplist.txt')
     ```
 
+    **Main Menu Loop:**
+
+    The program runs in an infinite loop (`while True`) until the user chooses to exit.
+
+    The user selects a search mode:
+
+    -   `0`: Exit the program
+    -   `1`: Search by a single word
+    -   `2`: Search by multiple words
+
 -   **Single-word Search**
 
-    Search with the keyword `"cat"`, weight `3`, and retrieve `3` results:
+    The user inputs: `word` (keyword), `weight` (an integer)
 
     ```bash
-    results = find_single('cat', weight=3, N=3, inverted_index=index, doc_table=doc_table)
+    results = find_single(word, weight=weight, N=3, inverted_index=index, doc_table=doc_table)
     print_top_documents(results)
     ```
 
 -   **Multi-word Search**
 
-    Search using multiple words from the file `data/query_words.txt`, retrieving `3` results:
+    Display a message indicating that the program is searching for keywords from the file `data/query_words.txt`.
 
     ```bash
     results = find_multi('data/query_words.txt', N=3, inverted_index=index, doc_table=doc_table)
     print_top_documents(results)
     ```
+
+## Project Structure
+
+```
+project/
+├── data/                   # Folder for text documents and query file
+│   ├── document1.txt
+│   ├── document2.txt
+│   └── query_words.txt     # Each line = 1 multi-word query
+├── stoplist.txt            # Stop words (1 word per line)
+├── main.py                 # Entry point
+├── src/
+│   ├── index_builder.py    # Index construction logic
+│   ├── search_single.py    # Single keyword search
+│   ├── search_multi.py     # Multi-keyword search
+│   └── utils.py            # Utility functions
+├── requirements.txt
+└── docker-compose.yml      # Docker config
+```
 
 ## Installation
 
@@ -192,85 +234,109 @@ git clone https://github.com/hoangngm2083/inverted-indexes.git
     -   `Python` v3.7 or later
     -   `pip`
 
-### 2. Install required libraries:
+-   **Install required libraries:**
+
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+-   **Build the inverted index:**
+
+    ```bash
+    python src/index_builder.py
+    ```
+
+-   **Perform search:**
+
+    -   To search for a single word or phrase:
+
+        ```bash
+        python src/search_single.py
+        ```
+
+    -   To search for multiple words from the query_words.txt file:
+
+        ```bash
+        python src/search_multi.py
+        ```
+
+## Running the App
+
+### 🔹Option 1: Run with Docker
+
+```bash
+docker-compose run --rm inverted-index-project
+```
+
+### 🔹Option 2: Run locally (Python 3.10+)
 
 ```bash
 pip install -r requirements.txt
-```
-
-### 3. Build the inverted index:
-
-```bash
-python src/index_builder.py
-```
-
-### 4. Perform search:
-
--   To search for a single word or phrase:
-
-    ```bash
-    python src/search_single.py
-    ```
-
--   To search for multiple words from the query_words.txt file:
-
-    ```bash
-    python src/search_multi.py
-    ```
-
-## Run The Program
-
-### 🔹Option 1: Run the project with Docker
-
-```bash
-docker-compose up
-```
-
-### 🔹Option 2: Run the project without Docker
-
-```bash
 python main.py
 ```
 
-## Example Input & Output
+## Search Instructions
 
-### Input
--   **(a) create_index('data', 'stoplist.txt')**
-    -   The name of the directory: `data`
-    -   The name of the file containing the list of stop words: `stoplist.txt`
+### Mode Selection
+When the app starts, you'll be prompted to choose a search mode:
+```
+Selection search mode: 
+0: exit
+1: single search
+2: multi search
+```
 
--   **(b) find_single('cat', weight=3, N=3, inverted_index=index, doc_table=doc_table)**
-    -   The keyword to search for: `cat`
-    -   An integer weight factor applied to term frequency or score: `weight=3`
-    -   The number of top documents to return: `N=3`
-    -   `inverted_index=index`
-    -   `doc_table=doc_table`
+### Mode 1: Single Keyword Search
+- Input a **keyword** and its **weight** (integer).
+- Only exact matches will be found (e.g., `cat` != `cats`).
+- Top 3 matching documents will be displayed with scores.
 
--   **(c) find_multi('data/query_words.txt', N=3, inverted_index=index, doc_table=doc_table)**
-    -   The keywords to search for: `data/query_words.txt`
-    -   The number of top documents to return: `N=3`
-    -   `inverted_index=index`
-    -   `doc_table=doc_table`
+    **Example:**
+    ```
+    Enter your search mode: 1
+    Enter your search word: cat
+    Enter your search word's weight: 2
+    ```
 
-### Output
--   **(a) create_index('data', 'stoplist.txt')**
+    **Output**
+    ```
+    Top documents for word='cat' with weight='2':
+    Không tìm thấy tài liệu phù hợp.
+    ```
 
-        index {'cats': {0: 1}, 'clever': {0: 1}, 'curious': {0: 1}, 'creatures': {0: 1}, 'climb': {0: 1}, 'chase': {0: 1}, 'cat': {0: 1, 2: 1}, 'computer': {1: 1, 2: 1}, 'concepts': {1: 1}, 'can': {1: 1}, 'challenging': {1: 1}, 'coding': {1: 1, 2: 1}, 'c': {1: 2}, 'common': {1: 1}, 'cs': {1: 1}, 'courses': {1: 1}}
-        
-        doc_table {0: 'doc1.txt', 1: 'doc2.txt', 2: 'query_words.txt'}
-    
-        term_table {'can', 'common', 'concepts', 'cat', 'courses', 'curious', 'clever', 'computer', 'c', 'chase', 'cats', 'cs', 'creatures', 'coding', 'climb', 'challenging'}
+### Mode 2: Multi-Keyword Search
+- Queries are read from `data/query_words.txt`, one per line.
+- Each line can contain multiple words.
+- Top 3 documents for each query will be shown.
 
--   **(b) find_single('cat', weight=3, N=3, inverted_index=index, doc_table=doc_table)**
+    **Example:**
+    ```
+    Enter your search mode: 2
+    ```
 
-        Top documents for word='cat':
-        query_words.txt: 3
+    **Output**
+    ```
+    Top documents for query from query_words.txt:
+    doc2.txt: 4
+    ```
 
--   **(c) find_multi('data/query_words.txt', N=3, inverted_index=index, doc_table=doc_table)**
+## Notes
+- Ensure all input `.txt` documents are placed in the `data/` folder.
+- `stoplist.txt` should contain common words to ignore during indexing.
+- All search is case-sensitive and exact.
+- The app uses a simple terminal interface with `input()` calls, best run with `docker-compose run` for full stdin compatibility.
 
-        Top documents for query from file:
-        query_words.txt: 6
-        doc2.txt: 4
+## Features
+- Create an inverted index from a folder of `.txt` files
+- Stop word filtering using a provided stoplist
+- Exact match search (e.g., `cat` does **not** match `cats` or `Cat`)
+- Two search modes:
+  - Single keyword with weight
+  - Multi-keyword queries loaded from file
+- Top-N ranking of matched documents
+
+## License
+This project is for educational and demonstration purposes.
 
 ## Contributors
 
